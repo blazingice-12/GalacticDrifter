@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="NoScope2D/NoScope2D.vcxproj" Id="bf81b1f8-b8c6-47f1-be93-ff2f0a29f5fa" />
+</Solution>
