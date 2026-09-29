@@ -9,7 +9,7 @@ private:
 	sf::Vector2f shipVelocity;
 	float speed;
 	float lifeTime;
-	float alive = true;
+	bool alive = true;
 
 public:
 	Bullet(sf::Vector2f position, sf::Vector2f forward, sf::Vector2f shipVelocity, float speed, float lifeTime);
