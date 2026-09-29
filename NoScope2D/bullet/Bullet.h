@@ -17,5 +17,5 @@ public:
 	void move(float dt);
 	void draw(sf::RenderWindow& window);
 	bool isAlive();
-	sf::CircleShape getBounds();
+	const sf::CircleShape& getBounds() const;
 };
