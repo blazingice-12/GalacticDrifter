@@ -61,7 +61,7 @@ float Asteroid::getRadius()
 	return radius;
 }
 
-sf::CircleShape Asteroid::getBounds()
+const sf::CircleShape& getBounds() const
 {
 	return shape;
 }
