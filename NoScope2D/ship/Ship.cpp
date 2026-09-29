@@ -48,6 +48,10 @@ void Ship::move(float dt)
 	{
 		velocity += forward * acceleration * dt;
 	}
+	else
+	{
+		velocity -= velocity * 0.5f * dt;
+	}
 
 	float currentSpeed = velocity.length();
 

@@ -13,6 +13,21 @@ int main()
 
 	sf::RenderWindow window(desktop, "Asteroids2D", sf::State::Windowed);
 
+	sf::Font font("assets/LowresPixel-Regular.otf");
+
+	//Display score
+	sf::Text showScore(font);
+	showScore.setCharacterSize(24);
+	showScore.setFillColor(sf::Color::White);
+	showScore.setPosition({10.f, 10.f});
+	int asteroidsDestroyed = 0;
+
+	//Display FPS
+	sf::Text showFPS(font);
+	showFPS.setCharacterSize(24);
+	showFPS.setFillColor(sf::Color::White);
+	showFPS.setPosition({ WIDTH-120.f, 10.f });
+
 	sf::View view(window.getDefaultView());
 
 	sf::Clock clock;
@@ -28,30 +43,13 @@ int main()
 
 	std::vector<Asteroid> asteroids;
 
+	float FPSOneSecTimer = 0.f;
+	float FPSCounter = 0.f;
+	float FPSSum = 0.f;
+	float FPSAvg = 0.f;
+
 	//=======================================================================================================================================
-	asteroids.emplace_back(
-		sf::Vector2f(100.f, 100.f),
-		sf::Vector2f(100.f, 50.f),
-		40.f,
-		WIDTH,
-		HEIGHT
-	);
 
-	asteroids.emplace_back(
-		sf::Vector2f(600.f, 300.f),
-		sf::Vector2f(-80.f, 120.f),
-		30.f,
-		WIDTH,
-		HEIGHT
-	);
-
-	asteroids.emplace_back(
-		sf::Vector2f(1000.f, 600.f),
-		sf::Vector2f(-150.f, -40.f),
-		50.f,
-		WIDTH,
-		HEIGHT
-	);
 	//=======================================================================================================================================
 	while (window.isOpen())
 	{
@@ -63,12 +61,29 @@ int main()
 			}
 		}
 		float dt = clock.restart().asSeconds();
-
 		window.setView(view);
 		
 		//=======================================================================================================================================
 		//UPDATE
 		//=======================================================================================================================================
+		showScore.setString("Asteroids Destroyed: " + std::to_string(asteroidsDestroyed));
+		
+		//Update fps every one second to avoid flickering
+
+		if (FPSOneSecTimer >= 0.5f)
+		{
+			showFPS.setString("FPS: " + std::to_string(static_cast<int>(FPSSum / FPSCounter)));
+			FPSOneSecTimer = 0.f;
+			FPSSum = 0.f;
+			FPSCounter = 0.f;
+		}
+		else
+		{
+			FPSOneSecTimer += dt;
+			FPSSum += 1 / dt;
+			FPSCounter++;
+		}
+		
 		player.update(dt);
 
 		fireCooldown -= dt;
@@ -106,13 +121,41 @@ int main()
 		{
 			asteroid.update(dt);
 		}
-		//Check bullet-astweroid collisions
+		if (asteroids.size() == 0)
+		{
+			asteroids.emplace_back(
+				sf::Vector2f(100.f, 100.f),
+				sf::Vector2f(100.f, 50.f),
+				40.f,
+				WIDTH,
+				HEIGHT
+			);
+
+			asteroids.emplace_back(
+				sf::Vector2f(600.f, 300.f),
+				sf::Vector2f(-80.f, 120.f),
+				30.f,
+				WIDTH,
+				HEIGHT
+			);
+
+			asteroids.emplace_back(
+				sf::Vector2f(1000.f, 600.f),
+				sf::Vector2f(-150.f, -40.f),
+				50.f,
+				WIDTH,
+				HEIGHT
+			);
+		}
+		//Check bullet-asteroid collisions
 		for (int i = 0; i < bullets.size();)
 		{
 			for (int j = 0; j < asteroids.size();)
 			{
+				
 				if (bullets[i].getBounds().getGlobalBounds().findIntersection(asteroids[j].getBounds().getGlobalBounds()))
 				{
+					asteroidsDestroyed++;
 					bullets.erase(bullets.begin() + i);
 					asteroids.erase(asteroids.begin() + j);
 					break;
@@ -121,6 +164,7 @@ int main()
 				{
 					j++;
 				}
+
 			}
 			if (i < bullets.size())
 			{
@@ -138,6 +182,8 @@ int main()
 		//DRAW
 		//=======================================================================================================================================
 		player.draw(window);
+		window.draw(showScore);
+		window.draw(showFPS);
 
 		for (Bullet& bullet : bullets)
 		{
@@ -148,6 +194,8 @@ int main()
 		{
 			asteroid.draw(window);
 		}
+
+
 		//=======================================================================================================================================
 		//=======================================================================================================================================
 		//=======================================================================================================================================
