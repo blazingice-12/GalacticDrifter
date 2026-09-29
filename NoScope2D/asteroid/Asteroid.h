@@ -23,5 +23,5 @@ public:
 	bool isAlive();
 	sf::Vector2f getPosition();
 	float getRadius();
-	sf::CircleShape getBounds();
+	const sf::CircleShape& getBounds() const;
 };
