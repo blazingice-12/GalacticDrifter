@@ -35,7 +35,7 @@ bool Bullet::isAlive()
 	return alive;
 }
 
-sf::CircleShape Bullet::getBounds()
+const sf::CircleShape& getBounds() const
 {
 	return shape;
 }
