@@ -111,8 +111,7 @@ int main()
 		{
 			for (int j = 0; j < asteroids.size();)
 			{
-				auto asteroidShape = asteroids[j].getBounds();
-				if (bullets[i].getBounds().getGlobalBounds().findIntersection(asteroidShape.getGlobalBounds()))
+				if (bullets[i].getBounds().getGlobalBounds().findIntersection(asteroids[j].getBounds().getGlobalBounds()))
 				{
 					bullets.erase(bullets.begin() + i);
 					asteroids.erase(asteroids.begin() + j);
@@ -149,9 +148,6 @@ int main()
 		{
 			asteroid.draw(window);
 		}
-		//SHOWS FPS IN CONSOLE
-		std::cout << 1/dt << std::endl;
-		std::system("cls");
 		//=======================================================================================================================================
 		//=======================================================================================================================================
 		//=======================================================================================================================================
