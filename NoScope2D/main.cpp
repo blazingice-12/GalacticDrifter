@@ -15,6 +15,35 @@ int main()
 
 	sf::Font font("assets/LowresPixel-Regular.otf");
 
+	// GAME STATES INITIALIZATION
+	enum class GameState
+	{
+		Home,
+		Playing,
+		GameOver
+	};
+
+	// Set the initial game state to Home
+	GameState currentState = GameState::Home;
+	//Home state texts
+	sf::Text homeText(font);
+	homeText.setCharacterSize(36);
+	homeText.setFillColor(sf::Color::White);
+	homeText.setString("Press SPACE to Start");
+	sf::FloatRect homeTextBounds = homeText.getLocalBounds();
+	homeText.setOrigin({ homeText.getLocalBounds().size.x / 2.f, homeText.getLocalBounds().size.y / 2.f });
+	homeText.setPosition({ WIDTH/2.f, HEIGHT/2.f });
+	
+
+	//Game Over state texts
+	sf::Text gameOverText(font);
+	gameOverText.setCharacterSize(36);
+	gameOverText.setFillColor(sf::Color::White);
+	gameOverText.setString("Game Over - Press SPACE to Restart");
+	sf::FloatRect textBounds = gameOverText.getLocalBounds();
+	gameOverText.setOrigin({ gameOverText.getLocalBounds().size.x / 2.f, gameOverText.getLocalBounds().size.y / 2.f });
+	gameOverText.setPosition({ WIDTH / 2.f, HEIGHT / 2.f});
+
 	//Display score
 	sf::Text showScore(font);
 	showScore.setCharacterSize(24);
@@ -60,141 +89,180 @@ int main()
 				window.close();
 			}
 		}
+
 		float dt = clock.restart().asSeconds();
-		window.setView(view);
-		
 		//=======================================================================================================================================
-		//UPDATE
+		//HOME STATE
 		//=======================================================================================================================================
-		showScore.setString("Asteroids Destroyed: " + std::to_string(asteroidsDestroyed));
-		
-		//Update fps every one second to avoid flickering
-
-		if (FPSOneSecTimer >= 0.5f)
+		if (currentState == GameState::Home)
 		{
-			showFPS.setString("FPS: " + std::to_string(static_cast<int>(FPSSum / FPSCounter)));
-			FPSOneSecTimer = 0.f;
-			FPSSum = 0.f;
-			FPSCounter = 0.f;
-		}
-		else
-		{
-			FPSOneSecTimer += dt;
-			FPSSum += 1 / dt;
-			FPSCounter++;
-		}
-		
-		player.update(dt);
-
-		fireCooldown -= dt;
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && fireCooldown <= 0)
-		{
-			fireCooldown = 0.2f;
-			sf::Vector2f bulletPosition = player.getPosition();
-			sf::Vector2f bulletForward = player.getForward();
-			sf::Vector2f shipVelocity = player.getVelocity();
-
-			Bullet bullet(bulletPosition + bulletForward * 20.f, bulletForward, shipVelocity, 300.f, 4.f);
-
-			bullets.push_back(bullet);
-		}
-
-		for (Bullet& bullet : bullets)
-		{
-			bullet.update(dt);
-		}
-
-		for (int i = 0; i < bullets.size();)
-		{
-			if (!bullets[i].isAlive())
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
 			{
-				bullets.erase(bullets.begin() + i);
+				currentState = GameState::Playing;
 			}
 			else
 			{
-				i++;
+				window.draw(homeText);
 			}
 		}
-
-		for (Asteroid& asteroid : asteroids)
+		//=======================================================================================================================================
+		//PLAYING STATE
+		//=======================================================================================================================================
+		else if (currentState == GameState::Playing)
 		{
-			asteroid.update(dt);
-		}
-		if (asteroids.size() == 0)
-		{
-			asteroids.emplace_back(
-				sf::Vector2f(100.f, 100.f),
-				sf::Vector2f(100.f, 50.f),
-				40.f,
-				WIDTH,
-				HEIGHT
-			);
-
-			asteroids.emplace_back(
-				sf::Vector2f(600.f, 300.f),
-				sf::Vector2f(-80.f, 120.f),
-				30.f,
-				WIDTH,
-				HEIGHT
-			);
-
-			asteroids.emplace_back(
-				sf::Vector2f(1000.f, 600.f),
-				sf::Vector2f(-150.f, -40.f),
-				50.f,
-				WIDTH,
-				HEIGHT
-			);
-		}
-		//Check bullet-asteroid collisions
-		for (int i = 0; i < bullets.size();)
-		{
-			for (int j = 0; j < asteroids.size();)
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
 			{
-				
-				if (bullets[i].getBounds().getGlobalBounds().findIntersection(asteroids[j].getBounds().getGlobalBounds()))
+				currentState = GameState::GameOver;
+				asteroidsDestroyed = 0;
+			}
+			window.setView(view);
+			//=======================================================================================================================================
+			//UPDATE
+			//=======================================================================================================================================
+			showScore.setString("Asteroids Destroyed: " + std::to_string(asteroidsDestroyed));
+
+			//Update fps every one second to avoid flickering
+			if (FPSOneSecTimer >= 0.5f)
+			{
+				showFPS.setString("FPS: " + std::to_string(static_cast<int>(FPSSum / FPSCounter)));
+				FPSOneSecTimer = 0.f;
+				FPSSum = 0.f;
+				FPSCounter = 0.f;
+			}
+			else
+			{
+				FPSOneSecTimer += dt;
+				FPSSum += 1 / dt;
+				FPSCounter++;
+			}
+
+			player.update(dt);
+
+			fireCooldown -= dt;
+
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && fireCooldown <= 0)
+			{
+				fireCooldown = 0.05f;
+				sf::Vector2f bulletPosition = player.getPosition();
+				sf::Vector2f bulletForward = player.getForward();
+				sf::Vector2f shipVelocity = player.getVelocity();
+
+				Bullet bullet(bulletPosition + bulletForward * 20.f, bulletForward, shipVelocity, 300.f, 4.f);
+
+				bullets.push_back(bullet);
+			}
+
+			for (Bullet& bullet : bullets)
+			{
+				bullet.update(dt);
+			}
+
+			for (int i = 0; i < bullets.size();)
+			{
+				if (!bullets[i].isAlive())
 				{
-					asteroidsDestroyed++;
 					bullets.erase(bullets.begin() + i);
-					asteroids.erase(asteroids.begin() + j);
-					break;
 				}
 				else
 				{
-					j++;
+					i++;
 				}
-
 			}
-			if (i < bullets.size())
+
+			for (Asteroid& asteroid : asteroids)
 			{
-				i++;
+				asteroid.update(dt);
+			}
+			if (asteroids.size() == 0)
+			{
+				asteroids.emplace_back(
+					sf::Vector2f(100.f, 100.f),
+					sf::Vector2f(100.f, 50.f),
+					40.f,
+					WIDTH,
+					HEIGHT
+				);
+
+				asteroids.emplace_back(
+					sf::Vector2f(600.f, 300.f),
+					sf::Vector2f(-80.f, 120.f),
+					30.f,
+					WIDTH,
+					HEIGHT
+				);
+
+				asteroids.emplace_back(
+					sf::Vector2f(1000.f, 600.f),
+					sf::Vector2f(-150.f, -40.f),
+					50.f,
+					WIDTH,
+					HEIGHT
+				);
+			}
+			//Check bullet-asteroid collisions
+			for (int i = 0; i < bullets.size();)
+			{
+				for (int j = 0; j < asteroids.size();)
+				{
+
+					if (bullets[i].getBounds().getGlobalBounds().findIntersection(asteroids[j].getBounds().getGlobalBounds()))
+					{
+						asteroidsDestroyed++;
+						bullets.erase(bullets.begin() + i);
+						asteroids.erase(asteroids.begin() + j);
+						break;
+					}
+					else
+					{
+						j++;
+					}
+
+				}
+				if (i < bullets.size())
+				{
+					i++;
+				}
+			}
+
+			//=======================================================================================================================================
+			//=======================================================================================================================================
+			//=======================================================================================================================================
+
+			window.clear(sf::Color::Black);
+
+			//=======================================================================================================================================
+			//DRAW
+			//=======================================================================================================================================
+			player.draw(window);
+
+			for (Bullet& bullet : bullets)
+			{
+				bullet.draw(window);
+			}
+
+			for (Asteroid& asteroid : asteroids)
+			{
+				asteroid.draw(window);
+			}
+
+			window.draw(showScore);
+
+			window.draw(showFPS);
+		}
+		//=======================================================================================================================================
+		//GAME OVER STATE
+		//=======================================================================================================================================
+		else if (currentState == GameState::GameOver)
+		{
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+			{
+				currentState = GameState::Playing;
+			}
+			else
+			{
+				window.draw(gameOverText);
 			}
 		}
-
-		//=======================================================================================================================================
-		//=======================================================================================================================================
-		//=======================================================================================================================================
-		
-		window.clear(sf::Color::Black);
-
-		//=======================================================================================================================================
-		//DRAW
-		//=======================================================================================================================================
-		player.draw(window);
-		window.draw(showScore);
-		window.draw(showFPS);
-
-		for (Bullet& bullet : bullets)
-		{
-			bullet.draw(window);
-		}
-
-		for (Asteroid& asteroid : asteroids)
-		{
-			asteroid.draw(window);
-		}
-
 
 		//=======================================================================================================================================
 		//=======================================================================================================================================
